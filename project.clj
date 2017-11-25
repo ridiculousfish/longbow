@@ -5,7 +5,8 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [aysylu/loom "1.0.0"]
-                 [cljfmt "0.1.5"]]
+                 [cljfmt "0.1.5"]
+                 [com.taoensso/truss "1.5.0"]]
   :plugins [[lein-cljfmt "0.5.7"]]
   :main ^:skip-aot longbow.core
   :target-path "target/%s"
