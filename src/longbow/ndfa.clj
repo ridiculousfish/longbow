@@ -21,7 +21,7 @@
         start (+ 1 cur)]
     (range start (+ count start))))
 
-(defn add-ndfa-input [dg input]
+(defn -add-ndfa-input [dg input]
   "Add a string input to a directed graph"
   (let [nodecount (- (count input) 1)
         interm-nodes (gen-nodes dg nodecount)
@@ -29,16 +29,23 @@
         edges (map vector path (drop 1 path))
         labels (if (empty? input) [epsilon] input)]
     (do
-      (println interm-nodes)
-      (println path)
       (assert (= (count edges) (count labels)))
       (as-> dg dg
         (apply add-nodes dg interm-nodes)
         (apply add-labeled-edges dg (interleave edges labels))))))
 
+(defn relabel [relabeler dg]
+  "Relabel edge labels"
+  (let [edges (edges dg)
+        oldlabels (map (partial label dg) edges)
+        newlabels (map relabeler oldlabels)]
+    (as-> dg newg
+      (remove-edges* dg edges)
+      (apply add-labeled-edges dg (interleave edges newlabels)))))
+
 (defn add-ndfa-inputs [dg inputs]
   "Add multiple string inputs to a directed graph"
   (as-> dg dg
     (add-nodes dg start-node goal-node)
-    (reduce add-ndfa-input dg inputs)))
+    (reduce -add-ndfa-input dg inputs)))
 

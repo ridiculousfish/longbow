@@ -11,7 +11,9 @@
   [& args]
   (let [dg (-> (initial-graph)
                (add-ndfa-inputs '("abc", "defg", "")))]
-    do (
-        (view dg :alg :dot :fmt :png))))
+    (do
+      (view dg :alg :dot :fmt :png)))
+      
+      )
 
-;(-main)
+(-main)
