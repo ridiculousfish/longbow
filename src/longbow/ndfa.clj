@@ -1,5 +1,7 @@
 (ns longbow.ndfa
   (:require
+   [loom.graph]
+   [loom.io :refer :all]
    [ubergraph.core :refer :all]
    [taoensso.truss :as truss :refer (have have! have?)])
   (:gen-class))
@@ -18,38 +20,36 @@
         start (+ 1 cur)]
     (range start (+ count start))))
 
-(defn -add-labeled-edges [dg edges labels]
-  "Adds edges [x y] with labels labels"
-  (let [edgelabels (map #(conj %1 {:label %2}) edges labels)]
-    (add-directed-edges dg edgelabels)))
-
 (defn -add-ndfa-input [dg input]
   "Add a string input to a directed graph"
   (let [nodecount (- (count input) 1)
         interm-nodes (gen-nodes dg nodecount)
         path (concat [start-node] interm-nodes [goal-node])
-        edges (map vector path (drop 1 path))
-        labels (if (empty? input) [epsilon] input)]
+        labels (if (empty? input) [epsilon] input)
+        attrs (map (partial hash-map :label) labels)
+        newedges (map vector path (drop 1 path) attrs)]
     (do
-      (assert (= (count edges) (count labels)))
+      (assert (= (count newedges) (count labels)))
       (as-> dg dg
-        (apply add-nodes dg interm-nodes)
-        (-add-labeled-edges dg edges labels)))))
+        (apply add-nodes dg path)
+        (apply add-directed-edges dg newedges)))))
 
-; (defn relabel [relabeler dg]
-;   "Relabel edge labels"
-;   (let [edges (edges dg)
-;         oldlabels (map (partial label-of dg) edges)
-;         newlabels (map relabeler oldlabels)]
-;     (as-> dg newg
-;       (remove-edges* dg edges)
-;       (-add-labeled-edges dg edges newlabels))))
-(defn relabel [relabeler dg] (dg))
-(+ 1 2)
+(defn relabel [relabeler dg]
+  "Relabel edge labels"
+  (let [relabel-edge (fn [edge]
+                       (let [oldattrs (attrs dg edge)
+                             newattrs (update oldattrs :label relabeler)]
+                          [(:src edge) (:dest edge) newattrs]))
+        oldedges (edges dg)
+        newedges (map relabel-edge oldedges)
+        _ (println "relabel old edges: " oldedges)
+        _ (println "relabel new edges: " newedges)]
+    (as-> dg dg
+      (apply remove-edges dg oldedges)
+      (apply add-directed-edges dg newedges))))
 
 (defn add-ndfa-inputs [dg inputs]
   "Add multiple string inputs to a directed graph"
   (as-> dg dg
     (add-nodes dg start-node goal-node)
     (reduce -add-ndfa-input dg inputs)))
-

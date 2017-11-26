@@ -29,16 +29,16 @@
   (cond
     (char? x) (Prim. x)
     (= x epsilon) (Empty.)
-    :else (throw (Exception. "Unknown label type"))))
+    :else (throw (Exception. (str "Unknown label type " x)))))
 
 (defn -collapse-node
   "Collapse a node in an RE-NDFA"
   [g node]
   (let []))
 
-;(def test-ndfa (add-ndfa-inputs (multidigraph) '("abc", "defg", "")))
-;(print test-ndfa)
-;(view (relabel stringify (relabel -relabel-edge test-ndfa)))
+; (def test-ndfa (add-ndfa-inputs (multidigraph) '("abc", "defg", "")))
+; (loom.io/view (relabel stringify (relabel -relabel-edge test-ndfa)))
+
 
 (defn ndfa2re
   "Convert an NDFA to a RegEx"

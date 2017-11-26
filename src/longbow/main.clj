@@ -13,6 +13,10 @@
   (let [dg (-> (initial-graph)
                (add-ndfa-inputs '("abc", "defg", "")))]
     (do
-      (view dg :alg :dot :fmt :png))))
+      ;(view dg :alg :dot :fmt :png)
+      (viz-graph dg)
+      )))
 
 ;(-main)
+
+;(view (add-ndfa-inputs (initial-graph) '("abc", "defg", "")))
