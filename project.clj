@@ -8,7 +8,7 @@
                  [cljfmt "0.1.5"]
                  [com.taoensso/truss "1.5.0"]]
   :plugins [[lein-cljfmt "0.5.7"]]
-  :main ^:skip-aot longbow.core
+  :main ^:skip-aot longbow.main
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})
 

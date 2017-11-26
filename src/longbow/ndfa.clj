@@ -1,4 +1,4 @@
-(ns longbow.core
+(ns longbow.ndfa
   (:require
    [loom.graph :refer :all]
    [loom.io :refer :all]
@@ -10,6 +10,10 @@
 (def ^:const start-node "Initial node of an NDFA" :start)
 (def ^:const goal-node "Goal node of an NDFA" :goal)
 (def ^:const epsilon "Empty transition" :ε)
+
+(defn initial-graph []
+  "Return a starting (empty) graph"
+  (digraph))
 
 (defn gen-nodes [g count]
   "Return 'count' new nodes for the graph g"
@@ -38,11 +42,3 @@
     (add-nodes dg start-node goal-node)
     (reduce add-ndfa-input dg inputs)))
 
-(def dg (-> (digraph)
-            (add-ndfa-inputs '("abc", "defg", ""))))
-(view dg :alg :dot :fmt :png)
-
-; (defn -main
-;   "I don't do a whole lot ... yet."
-;   [& args]
-;   (println "Hello, World!"))
