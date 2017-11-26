@@ -3,6 +3,7 @@
    [taoensso.truss :as truss :refer (have have! have?)]
    [longbow.ndfa :refer :all]
    [longbow.ndfa2re :refer :all]
+   [ubergraph.core :refer :all :exclude [pprint]]
    [loom.io :refer :all])
   (:gen-class))
 
@@ -12,8 +13,6 @@
   (let [dg (-> (initial-graph)
                (add-ndfa-inputs '("abc", "defg", "")))]
     (do
-      (view dg :alg :dot :fmt :png)))
-      
-      )
+      (view dg :alg :dot :fmt :png))))
 
-(-main)
+;(-main)

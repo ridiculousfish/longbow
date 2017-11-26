@@ -1,9 +1,6 @@
 (ns longbow.ndfa
   (:require
-   [loom.graph :refer :all]
-   [loom.io :refer :all]
-   [loom.attr :refer :all]
-   [loom.label :refer :all]
+   [ubergraph.core :refer :all]
    [taoensso.truss :as truss :refer (have have! have?)])
   (:gen-class))
 
@@ -13,13 +10,18 @@
 
 (defn initial-graph []
   "Return a starting (empty) graph"
-  (digraph))
+  (multidigraph))
 
 (defn gen-nodes [g count]
   "Return 'count' new nodes for the graph g"
   (let [cur (apply max -1 (filter number? (nodes g)))
         start (+ 1 cur)]
     (range start (+ count start))))
+
+(defn -add-labeled-edges [dg edges labels]
+  "Adds edges [x y] with labels labels"
+  (let [edgelabels (map #(conj %1 {:label %2}) edges labels)]
+    (add-directed-edges dg edgelabels)))
 
 (defn -add-ndfa-input [dg input]
   "Add a string input to a directed graph"
@@ -32,16 +34,18 @@
       (assert (= (count edges) (count labels)))
       (as-> dg dg
         (apply add-nodes dg interm-nodes)
-        (apply add-labeled-edges dg (interleave edges labels))))))
+        (-add-labeled-edges dg edges labels)))))
 
-(defn relabel [relabeler dg]
-  "Relabel edge labels"
-  (let [edges (edges dg)
-        oldlabels (map (partial label dg) edges)
-        newlabels (map relabeler oldlabels)]
-    (as-> dg newg
-      (remove-edges* dg edges)
-      (apply add-labeled-edges dg (interleave edges newlabels)))))
+; (defn relabel [relabeler dg]
+;   "Relabel edge labels"
+;   (let [edges (edges dg)
+;         oldlabels (map (partial label-of dg) edges)
+;         newlabels (map relabeler oldlabels)]
+;     (as-> dg newg
+;       (remove-edges* dg edges)
+;       (-add-labeled-edges dg edges newlabels))))
+(defn relabel [relabeler dg] (dg))
+(+ 1 2)
 
 (defn add-ndfa-inputs [dg inputs]
   "Add multiple string inputs to a directed graph"

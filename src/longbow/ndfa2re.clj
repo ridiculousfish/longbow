@@ -1,10 +1,6 @@
 (ns longbow.ndfa2re
   (:require
-   [loom.graph :refer :all]
-   [loom.io :refer :all]
-   [loom.attr :refer :all]
-   [loom.label :refer :all]
-   [loom.derived :refer :all]
+   [ubergraph.core :refer :all]
    [taoensso.truss :as truss :refer (have have! have?)]
    [longbow.ndfa :refer :all]
    [clojure.string :as string])
@@ -35,9 +31,14 @@
     (= x epsilon) (Empty.)
     :else (throw (Exception. "Unknown label type"))))
 
+(defn -collapse-node
+  "Collapse a node in an RE-NDFA"
+  [g node]
+  (let []))
 
-(def test-ndfa (add-ndfa-inputs (initial-graph) '("abc", "defg", "")))
-(view (relabel stringify (relabel -relabel-edge test-ndfa)))
+;(def test-ndfa (add-ndfa-inputs (multidigraph) '("abc", "defg", "")))
+;(print test-ndfa)
+;(view (relabel stringify (relabel -relabel-edge test-ndfa)))
 
 (defn ndfa2re
   "Convert an NDFA to a RegEx"
