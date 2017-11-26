@@ -2,6 +2,7 @@
   (:require
    [taoensso.truss :as truss :refer (have have! have?)]
    [longbow.ndfa :refer :all]
+   [longbow.ndfa2re :refer :all]
    [loom.io :refer :all])
   (:gen-class))
 
@@ -10,6 +11,7 @@
   [& args]
   (let [dg (-> (initial-graph)
                (add-ndfa-inputs '("abc", "defg", "")))]
-    (view dg :alg :dot :fmt :png)))
+    do (
+        (view dg :alg :dot :fmt :png))))
 
-(-main)
+;(-main)
