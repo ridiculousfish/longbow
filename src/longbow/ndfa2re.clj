@@ -36,9 +36,7 @@
   [g node]
   (let []))
 
-; (def test-ndfa (add-ndfa-inputs (multidigraph) '("abc", "defg", "")))
-; (loom.io/view (relabel stringify (relabel -relabel-edge test-ndfa)))
-
+  
 
 (defn ndfa2re
   "Convert an NDFA to a RegEx"
