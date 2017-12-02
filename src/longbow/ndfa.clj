@@ -21,6 +21,10 @@
         start (+ 1 cur)]
     (range start (+ count start))))
 
+(defn label-of [dg edge]
+  "Return the label of a given edge"
+  (:label (attrs dg edge)))
+
 (defn -add-path [dg nodes labels]
   "Given a list of nodes and a list of labels used to form the edges, add nodes to the graph"
   (let [_ (assert (= (count nodes) (inc (count labels))) "Nodes should be 1 more than labels")
@@ -37,7 +41,6 @@
         attrs (map (partial hash-map :label) labels)
         newedges (map vector path (drop 1 path) attrs)]
     (do
-      (println newedges)
       (assert (= (count newedges) (count labels)))
       (as-> dg dg
         (apply add-nodes dg path)
@@ -70,3 +73,50 @@
                         (assert (not-any? number? labels) "Labels should not be numbers")
                         (-add-path dg nodes labels)))]
     (reduce apply-chain (initial-graph) chains)))
+
+(defn -cartesian [coll1 coll2]
+  (for [x coll1 y coll2] (vector x y)))
+
+(defn all? [lst] (every? identity lst))
+
+(defn -labels-between [dg node1 node2]
+  "return a sorted list of edges from node1 to node2"
+  (sort (map (partial label-of dg) (find-edges dg node1 node2))))
+
+(defn ndfa-isomorphic? [g1 g2]
+  "Returns if the two NDFAs are isomorphic, respecting edge labels"
+  (letfn [(can-assign [nodemap [node1 node2]]
+            "Return whether the assignment node1 -> node2 is valid in nodemap. node1 s in g1, node2 is in g2"
+            (assert (not (contains? nodemap node1)) "node is already in nodemap")
+            (assert (has-node? g1 node1) "node1 not in g1")
+            (assert (has-node? g2 node2) "node2 not in g2")
+            (and
+             (all? (for [succ1 (successors g1 node1)
+                         :let [succ2 (nodemap succ1)]
+                         :when succ2]
+                     (= (-labels-between g1 node1 succ1) (-labels-between g2 node2 succ2))))
+             (all? (for [pred1 (predecessors g1 node1)
+                         :let [pred2 (nodemap pred1)]
+                         :when pred2]
+                     (= (-labels-between g1 pred1 node1) (-labels-between g2 pred2 node2))))))
+
+          (try-assign [[nodemap rem1 rem2] node1 node2]
+                      (when (can-assign nodemap [node1 node2])
+                        [(assoc nodemap node1 node2) (disj rem1 node1) (disj rem2 node2)]))
+
+          (subiso [[nodemap rem1 rem2 :as assn]]
+                  (if (empty? rem1)
+                    (do (assert (empty? rem2) "Nodes should have same length")
+                        true)
+                    (some boolean (for [[node1 node2] (-cartesian rem1 rem2)
+                                        :let [subassn (try-assign assn node1 node2)]
+                                        :when subassn]
+                                    (subiso subassn)))))]
+    (assert (has-node? g1 start-node) "Missing start node")
+    (assert (has-node? g1 goal-node) "Missing goal node")
+    (assert (has-node? g2 start-node) "Missing start node")
+    (assert (has-node? g2 goal-node) "Missing goal node")
+    (boolean (some-> [{} (set (nodes g1)) (set (nodes g2))]
+                     (try-assign start-node start-node)
+                     (try-assign goal-node goal-node)
+                     (subiso)))))
