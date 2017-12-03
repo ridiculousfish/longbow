@@ -1,5 +1,6 @@
 (ns longbow.ndfa
   (:require
+   [longbow.utils :refer :all]
    [loom.graph]
    [loom.io :refer :all]
    [ubergraph.core :refer :all]
@@ -25,10 +26,14 @@
   "Return the label of a given edge"
   (:label (attrs dg edge)))
 
+(defn make-label-attr [label] 
+  "return an attribute dictionary for a label"
+  (hash-map :label label))
+
 (defn -add-path [dg nodes labels]
   "Given a list of nodes and a list of labels used to form the edges, add nodes to the graph"
   (let [_ (assert (= (count nodes) (inc (count labels))) "Nodes should be 1 more than labels")
-        attrs (map (partial hash-map :label) labels)
+        attrs (map make-label-attr labels)
         edges (map vector nodes (rest nodes) attrs)]
     (apply add-directed-edges dg edges)))
 
@@ -68,7 +73,12 @@
   "Specify a graph via a list of chains. A chain is a sequence (node label node label node...)"
   (let [apply-chain (fn [dg chain] ()
                       (let [nodes (take-nth 2 chain)
-                            labels (take-nth 2 (rest chain))]
+                            destring (fn [x]
+                                       "Convert a string to its first character"
+                                       (if (string? x)
+                                         (first-and-only x)
+                                         x))
+                            labels (map destring (take-nth 2 (rest chain)))]
                         (assert (odd? (count chain)) "Chain length should be odd")
                         (assert (not-any? number? labels) "Labels should not be numbers")
                         (-add-path dg nodes labels)))]
@@ -79,9 +89,18 @@
 
 (defn all? [lst] (every? identity lst))
 
-(defn -labels-between [dg node1 node2]
-  "return a sorted list of edges from node1 to node2"
-  (sort (map (partial label-of dg) (find-edges dg node1 node2))))
+(defn labels-between [dg node1 node2]
+  "edge labels from node1 to node2"
+  (map (partial label-of dg) (find-edges dg node1 node2)))
+
+(defn sorted-labels-between [dg node1 node2]
+  "sorted labels from node to node2"
+  (sort (labels-between dg node1 node2)))
+
+(defn self-labels [dg node]
+  "return labels for self-edges"
+  (labels-between dg node node)
+)
 
 (defn ndfa-isomorphic? [g1 g2]
   "Returns if the two NDFAs are isomorphic, respecting edge labels"
@@ -94,11 +113,11 @@
              (all? (for [succ1 (successors g1 node1)
                          :let [succ2 (nodemap succ1)]
                          :when succ2]
-                     (= (-labels-between g1 node1 succ1) (-labels-between g2 node2 succ2))))
+                     (= (sorted-labels-between g1 node1 succ1) (sorted-labels-between g2 node2 succ2))))
              (all? (for [pred1 (predecessors g1 node1)
                          :let [pred2 (nodemap pred1)]
                          :when pred2]
-                     (= (-labels-between g1 pred1 node1) (-labels-between g2 pred2 node2))))))
+                     (= (sorted-labels-between g1 pred1 node1) (sorted-labels-between g2 pred2 node2))))))
 
           (try-assign [[nodemap rem1 rem2] node1 node2]
                       (when (can-assign nodemap [node1 node2])
