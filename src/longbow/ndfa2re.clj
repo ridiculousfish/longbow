@@ -1,7 +1,6 @@
 (ns longbow.ndfa2re
   (:require
    [ubergraph.core :refer :all]
-   [taoensso.truss :as truss :refer (have have! have?)]
    [longbow.ndfa :refer :all]
    [longbow.utils :refer :all]
    [loom.io :refer (view)]
@@ -21,7 +20,7 @@
 (defrecord Concat [rs]
   RegEx (stringify [this] (apply str (map stringify rs))))
 (defrecord Alt [rs]
-  RegEx (stringify [this] (string/join "|" (sort (map stringify rs)))))
+  RegEx (stringify [this] (str "(" (string/join "|" (sort (map stringify rs))) ")")))
 (defrecord Kleene [r]
   RegEx (stringify [this] (str (stringify r) "*")))
 
@@ -56,8 +55,8 @@
                         out outgoing-edges]
                     [(src inc) (dest out) (build-label inc out)])]
     (as-> g g
-        (remove-nodes g node)
-        (apply add-directed-edges g new-edges))))
+      (remove-nodes g node)
+      (apply add-directed-edges g new-edges))))
 
 (defn -just-collapse [rendfa]
   "Collapse an RE-NDFA without regard to anything. Returns the regex!"
@@ -71,4 +70,12 @@
   (let [rendfa (relabel -relabel-edge ndfa)]
     (-just-collapse rendfa)))
 
-(stringify (ndfa2re (add-ndfa-inputs (initial-graph) '("ab" "c"))))
+(defn strs2res [& args]
+  (-> (initial-graph)
+      (add-ndfa-inputs args)
+      (ndfa2re)
+      (stringify)))
+
+
+;(view (add-ndfa-inputs (initial-graph) '("abc" "xbc")))
+;(view (strs2res "abc" "xbc"))

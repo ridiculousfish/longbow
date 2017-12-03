@@ -2,6 +2,7 @@
   (:require [clojure.test :refer :all]
             [longbow.ndfa :refer :all]
             [longbow.ndfa2re :refer :all]
+            [longbow.ndfa-opts :refer :all]
             [longbow.utils :refer :all]
             [loom.io :refer (view)]
             [ubergraph.core :refer :all]))
@@ -37,12 +38,22 @@
                              [start-node epsilon goal-node])))))
 
 (deftest ndfa2re-test
-  (let [strtrip (fn [& args]
-                  (-> (initial-graph)
-                      (add-ndfa-inputs args)
-                      (ndfa2re)
-                      (stringify)))]
-    (is (= (strtrip "ab") "ab"))
-    (is (= (strtrip "ab" "c") "ab|c"))
-    (is (= (strtrip "c" "ab") "ab|c"))
-    (is (= (strtrip "ab" "cd" "") "|ab|cd"))))
+  (is (= (strs2res "ab") "ab"))
+  (is (= (strs2res "ab" "c") "(ab|c)"))
+  (is (= (strs2res "c" "ab") "(ab|c)"))
+  (is (= (strs2res "ab" "cd" "") "(|ab|cd)")))
+
+(defn str2res-opt [& args]
+  "Strings to NDFA, optimize, to RE strings"
+  (-> (initial-graph)
+      (add-ndfa-inputs args)
+      (ndfa-optimize)
+      (ndfa2re)
+      (stringify)))
+
+(deftest ndfa2re-opt-test
+  (is (= (str2res-opt "ab") "ab"))
+  (is (= (str2res-opt "ax" "bx") "(a|b)x"))
+)
+
+(str2res-opt "ab" "ac")

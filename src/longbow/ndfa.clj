@@ -84,11 +84,6 @@
                         (-add-path dg nodes labels)))]
     (reduce apply-chain (initial-graph) chains)))
 
-(defn -cartesian [coll1 coll2]
-  (for [x coll1 y coll2] (vector x y)))
-
-(defn all? [lst] (every? identity lst))
-
 (defn labels-between [dg node1 node2]
   "edge labels from node1 to node2"
   (map (partial label-of dg) (find-edges dg node1 node2)))
@@ -127,7 +122,7 @@
                   (if (empty? rem1)
                     (do (assert (empty? rem2) "Nodes should have same length")
                         true)
-                    (some boolean (for [[node1 node2] (-cartesian rem1 rem2)
+                    (some boolean (for [[node1 node2] (cartesian rem1 rem2)
                                         :let [subassn (try-assign assn node1 node2)]
                                         :when subassn]
                                     (subiso subassn)))))]

@@ -12,3 +12,11 @@
   "returns the first item of coll, asserting it has length 1"
   (assert (len1? coll) "Collection should have length 1")
   (first coll))
+
+(defn cartesian [coll1 coll2]
+  (for [x coll1 y coll2] (vector x y)))
+
+(defn neq-cartesian [coll1 coll2]
+  (for [x coll1 y coll2 :when (not= x y)] (vector x y)))
+
+(defn all? [lst] (every? identity lst))
