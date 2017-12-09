@@ -44,9 +44,23 @@
   (is (= (strs2res "c" "ab") "(ab|c)"))
   (is (= (strs2res "ab" "cd" "") "(|ab|cd)")))
 
+(defn -test-ndfa2re-opt [& args]
+  (is (= (apply str2res-opt (butlast args)) (last args))))
 
 (deftest ndfa2re-opt-test
-  (is (= (str2res-opt "ab") "ab"))
-  (is (= (str2res-opt "ax" "bx") "(a|b)x")))
+  (-test-ndfa2re-opt "ab" "ab")
+  (-test-ndfa2re-opt "ax" "bx" "(a|b)x")
+  (-test-ndfa2re-opt "AXXB" "AYYB" "AZZB" "A(XX|YY|ZZ)B")
+)
+
+;(str2res-opt :show "AXXB" "AYYB" "AZZB")
+
+  ; DO_TEST $ (do_your_stuff 0 ["AXXB", "AYYB", "AZZB"]) == "A(XX|YY|ZZ)B"
+  ; DO_TEST $ (do_your_stuff 0 ["AXB", "AYB", "XB", "YB"]) == "A?[XY]B"
+  ; DO_TEST $ (do_your_stuff 0 ["AXXB", "AYYB"]) == "A(XX|YY)B"
+  ; DO_TEST $ (do_your_stuff 0 ["AB", "ABB", "B", "BB"]) == "A?BB?"
+  ; DO_TEST $ (do_your_stuff 0 ["ABX", "AX", "BX", "X"]) == "A?B?X"
+  ; DO_TEST $ (do_your_stuff 0 ["ABX", "AX", "BX", "X"]) == "A?B?X"
+  ; DO_TEST $ (do_your_stuff 0 ["BC", "BCC", "BCCC"]) == "BC{1,3}"
 
 ;(str2res-opt "ab" "ac")

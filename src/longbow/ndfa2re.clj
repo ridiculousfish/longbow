@@ -4,7 +4,8 @@
    [longbow.ndfa :refer :all]
    [longbow.utils :refer :all]
    [loom.io :refer (view)]
-   [clojure.string :as string])
+   [clojure.string :as string]
+   [clojure.math.combinatorics :as combo])
   (:gen-class))
 
 (defprotocol RegEx
@@ -62,17 +63,34 @@
       (remove-nodes g node)
       (apply add-directed-edges g new-edges))))
 
+(defn -collapse-by-path [rendfa nodelist]
+  "Collapse an RE-NDFA according to the nodes in the given nodelist"
+  (reduce -collapse-node rendfa nodelist))
+
+(defn -collapsed-label [collapsed]
+  "return the final label of a collapsed rendfa"
+  (-as-alt (labels-between collapsed start-node goal-node)))
+
 (defn -just-collapse [rendfa]
   "Collapse an RE-NDFA without regard to anything. Returns the regex!"
+  (let [interior-nodes (remove #{start-node goal-node} (nodes rendfa))]
+    (-collapsed-label (-collapse-by-path rendfa interior-nodes))))
+
+(defn -collapsed-ndfas-every-which-way [rendfa]
+  "Return a sequence of all collapsed NDFAs"
   (let [interior-nodes (remove #{start-node goal-node} (nodes rendfa))
-        collapsed (reduce -collapse-node rendfa interior-nodes)
-        labels (labels-between collapsed start-node goal-node)]
-    (-as-alt labels)))
+        collapse-then-label (comp -collapsed-label (partial -collapse-by-path rendfa))]
+    (map collapse-then-label (combo/permutations interior-nodes))))
 
 (defn ndfa2re [ndfa]
   "Convert an NDFA to a RegEx"
   (let [rendfa (relabel -relabel-edge ndfa)]
     (-just-collapse rendfa)))
+
+(defn ndfa2res [ndfa]
+  "Convert an NDFA to many RegExs"
+  (let [rendfa (relabel -relabel-edge ndfa)]
+    (-collapsed-ndfas-every-which-way rendfa)))
 
 (defn strs2res [& args]
   (-> (initial-graph)
