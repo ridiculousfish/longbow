@@ -8,5 +8,3 @@
   [& args]
   (str2res-opt "ab" "xb")
 )
-
-

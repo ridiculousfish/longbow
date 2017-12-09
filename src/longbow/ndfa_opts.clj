@@ -50,7 +50,6 @@
         out-nedges (outgoing-nedges dg victim)
         slabels (self-labels dg victim)]
     (assert (not= adopting victim) "Can't merge node into self")
-    (println "Merging " adopting victim)
     (as-> dg dg
       (remove-nodes dg victim)
       (-add-incedges dg adopting in-nedges)
