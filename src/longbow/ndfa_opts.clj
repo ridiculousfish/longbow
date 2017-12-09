@@ -80,5 +80,4 @@
 
 (defn ndfa-optimize [g]
   "Optimize an NDFA"
-  (-apply-merging-opt g
-                      (any-pred -nodes-same-outgoing -nodes-same-incoming)))
+  (-apply-merging-opt g (any-pred -nodes-same-outgoing -nodes-same-incoming)))

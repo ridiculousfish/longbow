@@ -82,15 +82,18 @@
         collapse-then-label (comp -collapsed-label (partial -collapse-by-path rendfa))]
     (map collapse-then-label (combo/permutations interior-nodes))))
 
+(defn ndfa2rendfa [ndfa]
+  "Convert an NDFA to an re-NDFA"
+  (relabel -relabel-edge ndfa)
+)
+
 (defn ndfa2re [ndfa]
   "Convert an NDFA to a RegEx"
-  (let [rendfa (relabel -relabel-edge ndfa)]
-    (-just-collapse rendfa)))
+  (-just-collapse (ndfa2rendfa ndfa)))
 
 (defn ndfa2res [ndfa]
   "Convert an NDFA to many RegExs"
-  (let [rendfa (relabel -relabel-edge ndfa)]
-    (-collapsed-ndfas-every-which-way rendfa)))
+  (-collapsed-ndfas-every-which-way (ndfa2rendfa ndfa)))
 
 (defn strs2res [& args]
   (-> (initial-graph)

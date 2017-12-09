@@ -47,15 +47,31 @@
 (defn -test-ndfa2re-opt [& args]
   (is (= (apply str2res-opt (butlast args)) (last args))))
 
+(defn not* [& args]
+  (not (eval args)))
+
+(deftest ndfa2re-same-inc-out
+  (let [g (ndfa-from-chains [start-node "a" 1 "x" goal-node]
+                            [start-node "b" 2 "x" goal-node]
+                            [start-node "a" 3 "z" goal-node]
+                            [start-node "a" 4 "x" goal-node]
+                            [4 "e" 4])
+        same-inc #(apply -nodes-same-incoming g %)
+        same-outg #(apply -nodes-same-outgoing g %)
+        pairs (neq-cartesian (nodes g) (nodes g))
+        eq-ins (set (filter same-inc pairs))
+        eq-outs (set (filter same-outg pairs))]
+    (is (= eq-ins #{[1 3] [3 1]}))
+    (is (= eq-outs #{[1 2] [2 1]}))))
+
 (deftest ndfa2re-opt-test
   (-test-ndfa2re-opt "ab" "ab")
   (-test-ndfa2re-opt "ax" "bx" "(a|b)x")
   (-test-ndfa2re-opt "AXXB" "AYYB" "AZZB" "A(XX|YY|ZZ)B")
-)
+  (-test-ndfa2re-opt "AXB" "AYB" "XB" "YB" "A?[XY]B"))
 
-;(str2res-opt :show "AXXB" "AYYB" "AZZB")
+(str2res-opt :show "AXB" "AYB" "XB" "YB")
 
-  ; DO_TEST $ (do_your_stuff 0 ["AXXB", "AYYB", "AZZB"]) == "A(XX|YY|ZZ)B"
   ; DO_TEST $ (do_your_stuff 0 ["AXB", "AYB", "XB", "YB"]) == "A?[XY]B"
   ; DO_TEST $ (do_your_stuff 0 ["AXXB", "AYYB"]) == "A(XX|YY)B"
   ; DO_TEST $ (do_your_stuff 0 ["AB", "ABB", "B", "BB"]) == "A?BB?"
