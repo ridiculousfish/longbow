@@ -4,8 +4,7 @@
    [loom.graph]
    [loom.io :refer :all]
    [ubergraph.core :refer :all]
-   [taoensso.truss :as truss :refer (have have! have?)])
-  (:gen-class))
+  (:gen-class)))
 
 (def ^:const start-node "Initial node of an NDFA" :start)
 (def ^:const goal-node "Goal node of an NDFA" :goal)
@@ -96,6 +95,28 @@
   "return labels for self-edges"
   (labels-between dg node node)
 )
+
+(defn incoming-nedges [dg node]
+  "Returns collection of incoming [node label], neglecting self-edges"
+  (set (for [inc (in-edges dg node)
+             :let [inc-node (src inc)]
+             :when (not= node inc-node)]
+         [inc-node (label-of dg inc)])))
+
+(defn outgoing-nedges [dg node]
+  "Returns collection of outgoing [node label], neglecting self-edges"
+  (set (for [out (out-edges dg node)
+             :let [out-node (dest out)]
+             :when (not= node out-node)]
+         [out-node (label-of dg out)])))
+
+(defn nedge-label [nedge]
+  "return the label of a nedge"
+  (second nedge))
+
+(defn nedge-node [nedge]
+  "return the node of a nedge"
+  (first nedge))
 
 (defn ndfa-isomorphic? [g1 g2]
   "Returns if the two NDFAs are isomorphic, respecting edge labels"

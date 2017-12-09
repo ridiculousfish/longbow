@@ -20,3 +20,13 @@
   (for [x coll1 y coll2 :when (not= x y)] (vector x y)))
 
 (defn all? [lst] (every? identity lst))
+
+(defn any-pred [& preds]
+  "return a composed predicate that, when invoked with 'args',
+   returns the first true value of the given predicates invoked with args (lazily)"
+  (let [orit (fn [predseq args]
+               (if (empty? predseq)
+                 false
+                 (or (apply (first predseq) args)
+                     (recur (rest predseq) args))))]
+    (fn [& args] (orit (seq preds) args))))

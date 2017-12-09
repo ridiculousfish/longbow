@@ -7,19 +7,15 @@
    [ubergraph.core :refer :all])
   (:gen-class))
 
-(defn incoming-nedges [dg node]
-  "Returns collection of incoming [node label], neglecting self-edges"
-  (set (for [inc (in-edges dg node)
-             :let [inc-node (src inc)]
-             :when (not= node inc-node)]
-         [inc-node (label-of dg inc)])))
+(defrecord Queryable [graph node edges])
 
-(defn outgoing-nedges [dg node]
-  "Returns collection of outgoing [node label], neglecting self-edges"
-  (set (for [out (out-edges dg node)
-             :let [out-node (dest out)]
-             :when (not= node out-node)]
-         [out-node (label-of dg out)])))
+(defn select [dg node]
+  "Return a queryable for the given graph and node"
+  (Queryable. dg node ()))
+
+(defn labels [q]
+  "Labels for a queryable"
+  (map (partial label-of (q :graph)) (q :edges)))
 
 (defn -add-outedges [dg node nedges]
   "Add outgoing nedges"
@@ -60,16 +56,17 @@
       (-add-incedges dg adopting in-nedges)
       (-add-outedges dg adopting out-nedges)
       (-add-selfedges dg adopting slabels)
-      (-dedup-edges dg adopting)
-      (do (view dg) dg)
-      )))
+      (-dedup-edges dg adopting))))
 
 (defn -nodes-same-outgoing [dg node1 node2]
-  "return whether the two nodes have the same incoming and outgoing nedges"
-  (println "merge? " node1 node2)
-  (println "  outgoing " (outgoing-nedges dg node1) (outgoing-nedges dg node2))
+  "return whether the two nodes have the same self and outgoing nedges"
   (and (= (self-labels dg node1) (self-labels dg node2))
        (= (outgoing-nedges dg node1) (outgoing-nedges dg node2))))
+
+(defn -nodes-same-incoming [dg node1 node2]
+  "return whether the two nodes have the same self and incoming nedges"
+  (and (= (self-labels dg node1) (self-labels dg node2))
+       (= (incoming-nedges dg node1) (incoming-nedges dg node2))))
 
 (defn -apply-merging-opt [dg pred]
   (let [nds (nodes dg)
@@ -84,4 +81,5 @@
 
 (defn ndfa-optimize [g]
   "Optimize an NDFA"
-  (-apply-merging-opt g -nodes-same-outgoing))
+  (-apply-merging-opt g
+                      (any-pred -nodes-same-outgoing -nodes-same-incoming)))

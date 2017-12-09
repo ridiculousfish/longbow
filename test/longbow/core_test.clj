@@ -1,5 +1,6 @@
 (ns longbow.core-test
   (:require [clojure.test :refer :all]
+            [longbow.entrypoints :refer :all]
             [longbow.ndfa :refer :all]
             [longbow.ndfa2re :refer :all]
             [longbow.ndfa-opts :refer :all]
@@ -43,17 +44,9 @@
   (is (= (strs2res "c" "ab") "(ab|c)"))
   (is (= (strs2res "ab" "cd" "") "(|ab|cd)")))
 
-(defn str2res-opt [& args]
-  "Strings to NDFA, optimize, to RE strings"
-  (-> (initial-graph)
-      (add-ndfa-inputs args)
-      (ndfa-optimize)
-      (ndfa2re)
-      (stringify)))
 
 (deftest ndfa2re-opt-test
   (is (= (str2res-opt "ab") "ab"))
-  (is (= (str2res-opt "ax" "bx") "(a|b)x"))
-)
+  (is (= (str2res-opt "ax" "bx") "(a|b)x")))
 
-(str2res-opt "ab" "ac")
+;(str2res-opt "ab" "ac")

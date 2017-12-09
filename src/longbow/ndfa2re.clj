@@ -41,19 +41,23 @@
     (= x epsilon) (Empty.)
     :else (throw (Exception. (str "Unknown label type " x)))))
 
+(defn -merge-parallel-nedges [nedges]
+  "Group nedges with the same node into parallel nedges. Return new nedges."
+  (let [flatten (fn ([[node, nedges]]
+                     [node, (-as-alt (map nedge-label nedges))]))]
+    (map flatten (seq (group-by nedge-node nedges)))))
+
 (defn -collapse-node [g node]
   "Collapse a node in an RE-NDFA. Concatenation of incoming -> selfloops -> outgoing. "
   (let [slabels (self-labels g node)
         self-res (if (empty? slabels) [] [(Kleene. (-as-alt slabels))])
-        incoming-edges (filter #(not= node (src %)) (in-edges g node))
-        outgoing-edges (filter #(not= node (dest %)) (out-edges g node))
         build-label (fn [inc out] (make-label-attr (-as-concat (concat
-                                                                [(label-of g inc)]
+                                                                [(nedge-label inc)]
                                                                 self-res
-                                                                [(label-of g out)]))))
-        new-edges (for [inc incoming-edges
-                        out outgoing-edges]
-                    [(src inc) (dest out) (build-label inc out)])]
+                                                                [(nedge-label out)]))))
+        new-edges (for [inc (-merge-parallel-nedges (incoming-nedges g node))
+                        out (-merge-parallel-nedges (outgoing-nedges g node))]
+                    [(nedge-node inc) (nedge-node out) (build-label inc out)])]
     (as-> g g
       (remove-nodes g node)
       (apply add-directed-edges g new-edges))))
@@ -76,6 +80,3 @@
       (ndfa2re)
       (stringify)))
 
-
-;(view (add-ndfa-inputs (initial-graph) '("abc" "xbc")))
-;(view (strs2res "abc" "xbc"))
