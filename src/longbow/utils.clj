@@ -30,3 +30,12 @@
                  (or (apply (first predseq) args)
                      (recur (rest predseq) args))))]
     (fn [& args] (orit (seq preds) args))))
+
+(defn zipmapset [coll]
+  "let coll be a sequence of vectors [key, value]. Return a map key -> set(value)"
+  (into {} (for [[k v] (group-by first coll)] [k (set (map second v))])))
+
+  (defn invert-map [m]
+    "invert a map, with values mapped to sets of keys"
+    (reduce (fn [m' [k v]] (update m' v clojure.set/union #{k})) {} m))
+    

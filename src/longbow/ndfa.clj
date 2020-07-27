@@ -4,7 +4,7 @@
    [loom.graph]
    [loom.io :refer :all]
    [ubergraph.core :refer :all]
-  (:gen-class)))
+   (:gen-class)))
 
 (def ^:const start-node "Initial node of an NDFA" :start)
 (def ^:const goal-node "Goal node of an NDFA" :goal)
@@ -25,7 +25,7 @@
   "Return the label of a given edge"
   (:label (attrs dg edge)))
 
-(defn make-label-attr [label] 
+(defn make-label-attr [label]
   "return an attribute dictionary for a label"
   (hash-map :label label))
 
@@ -93,8 +93,7 @@
 
 (defn self-labels [dg node]
   "return labels for self-edges"
-  (labels-between dg node node)
-)
+  (labels-between dg node node))
 
 (defn incoming-nedges [dg node]
   "Returns collection of incoming [node label], neglecting self-edges"
@@ -109,6 +108,17 @@
              :let [out-node (dest out)]
              :when (not= node out-node)]
          [out-node (label-of dg out)])))
+
+(defn remove-incoming-nedges [dg node nedges]
+  "Removes incoming nedges"
+  (let [remove-1-nedge
+        (fn [g [incnode label]]
+          (remove-edges g (find-edge g {:src incnode :dst node :label label})))]
+    (reduce #(remove-1-nedge %1 node %2) dg nedges)))
+
+(defn incoming-nedgeset [dg node]
+  "Return collection of incoming [node, set(labels)], neglecting self-edges."
+  (zipmapset (incoming-nedges dg node)))
 
 (defn nedge-label [nedge]
   "return the label of a nedge"

@@ -78,6 +78,13 @@
                    dg))]
     (reduce merger dg worklist)))
 
+(defn -factor-incomings [dg node]
+  "Let x be a node with predecessors with the same edges. Retarget those edges into a new node and add an epsilon transition."
+  (let [nedgesets (incoming-nedgeset dg node)
+       labelsets-to-nodesets (invert-map nedgesets)]
+  )
+)
+
 (defn ndfa-optimize [g]
   "Optimize an NDFA"
   (-apply-merging-opt g (any-pred -nodes-same-outgoing -nodes-same-incoming)))
